@@ -149,10 +149,16 @@ async def list_available_models():
 async def save_settings(data: dict):
     api_key = data.get("api_key")
     if api_key:
+        api_key = api_key.strip()
         set_key(str(env_path), "GOOGLE_API_KEY", api_key)
         os.environ["GOOGLE_API_KEY"] = api_key
         return {"status": "success"}
     return {"status": "failed"}
+
+@app.get("/api/settings")
+async def get_settings():
+    api_key = os.getenv("GOOGLE_API_KEY", "")
+    return {"api_key": api_key}
 
 # 정적 파일 서빙
 app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")

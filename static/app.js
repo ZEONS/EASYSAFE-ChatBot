@@ -33,6 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function fetchSettings() {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+            if (data.api_key) {
+                apiKeyInput.value = data.api_key;
+            }
+        } catch (error) {
+            console.error('Error fetching settings:', error);
+        }
+    }
+
     function renderNotes(notes) {
         notesList.innerHTML = '';
         noteCount.textContent = notes.length;
@@ -191,4 +203,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize
     fetchNotes();
+    fetchSettings();
 });

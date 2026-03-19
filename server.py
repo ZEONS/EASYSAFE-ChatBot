@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Request, File, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -134,6 +134,32 @@ async def get_notes():
         result.append({"id": k, **v})
     return result
 
+@app.post("/api/notes")
+async def save_note(note: Note):
+    # 제목에서 특수문자 제거 (안전한 파일명 생성)
+    import re
+    safe_title = re.sub(r'[\\/*?:"<>|]', "", note.title).strip()
+    if not safe_title:
+        safe_title = "Untitled"
+    
+    # .md 확장자 추가
+    filename = f"{safe_title}.md"
+    file_path = NOTES_DIR / filename
+    
+    # 파일명 중복 시 (1), (2) 등 추가
+    counter = 1
+    while file_path.exists():
+        filename = f"{safe_title} ({counter}).md"
+        file_path = NOTES_DIR / filename
+        counter += 1
+        
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(note.content)
+        return {"id": filename, "status": "success", "title": filename}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/chat")
 async def chat(request: ChatRequest):
     api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
@@ -251,8 +277,16 @@ async def delete_file(filename: str):
     print("Status: NOT FOUND")
     raise HTTPException(status_code=404, detail="File not found")
 
-# 정적 파일 서빙
-app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
+# 루트 경로("/") 처리: index.html 반환 (캐시 방지 헤더 추가)
+@app.get("/")
+async def read_index():
+    return FileResponse(
+        str(STATIC_DIR / "index.html"),
+        headers={"Cache-Control": "no-store, no-cache, must-revalidate, max-age=0"}
+    )
+
+# 정적 파일 서빙: /static 서브디렉토리로 마운트
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 if __name__ == "__main__":
     import uvicorn

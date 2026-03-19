@@ -36,18 +36,40 @@ body {
 /* Sidebar */
 .sidebar {
     width: 320px;
+    min-width: 320px;
+    height: 100vh;
     background-color: var(--sidebar-bg);
     border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
     padding: 24px;
-    transition: var(--transition);
+    padding-top: 80px; /* 고정 버튼 자리 확보 */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    z-index: 1100;
+}
+
+.sidebar.hidden {
+    width: 0;
+    min-width: 0;
+    padding-left: 0;
+    padding-right: 0;
+    border-right: none;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.sidebar-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
 }
 
 .sidebar-header h1 {
     font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 32px;
+    margin: 0;
 }
 
 .sidebar-header span {
@@ -202,10 +224,46 @@ body {
 .top-bar {
     height: 70px;
     padding: 0 32px;
+    padding-left: 80px; /* 고정 버튼 자리 확보 */
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--glass-border);
+    position: relative;
+    z-index: 100;
+}
+
+/* Hamburger Button - Absolutely Fixed Outside Container */
+.hamburger-btn {
+    position: fixed;
+    top: 13px;
+    left: 18px;
+    z-index: 2100; /* 최상단 보장 */
+    background-color: rgba(26, 26, 26, 0.8); /* 다크 모드 시인성 강화 */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 10px;
+    display: flex;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    font-size: 1.1rem;
+}
+
+.hamburger-btn:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.hamburger-btn:active {
+    transform: scale(0.95);
 }
 
 .chat-container {
@@ -228,6 +286,7 @@ body {
     margin-bottom: 16px;
     background: linear-gradient(to right, #fff, #6366f1);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -509,6 +568,30 @@ textarea {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Note Modal Specifics */
+.note-modal-body {
+    max-width: 600px !important;
+}
+
+.note-modal-body textarea {
+    min-height: 200px;
+    background: var(--bg-color);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 16px;
+    width: 100%;
+}
+
+.note-modal-body textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.glass {
+    background: rgba(22, 23, 29, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+}
 
 /* Delete Confirmation Modal Specifics */
 .confirm-modal {

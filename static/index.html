@@ -4,18 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NotebookLM 지식 비서 — EASYSAFE NoteBot</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css?v=20260319">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="dark-theme">
+    <button id="menu-toggle" class="hamburger-btn" title="사이드바 펼치기">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar hidden" id="sidebar">
             <div class="sidebar-header">
-                <h1>📚 <span>지식 비서</span></h1>
+                <div class="sidebar-header-top">
+                    <h1>📚 <span>지식 비서</span></h1>
+                </div>
                 <p>NotebookLM 스타일 AI 어시스턴트</p>
             </div>
             
@@ -82,8 +88,10 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-bar">
-                <div class="current-note-info">
-                    <span id="active-note-title">모든 노트 기반 Q&A</span>
+                <div class="top-bar-left">
+                    <div class="current-note-info">
+                        <span id="active-note-title">모든 노트 기반 Q&A</span>
+                    </div>
                 </div>
                 <button id="clear-chat-btn" class="icon-btn" title="대화 초기화">
                     <i class="fas fa-trash-alt"></i>
@@ -113,9 +121,20 @@
     <!-- Modals -->
     <div id="note-modal" class="modal hidden">
         <div class="modal-content glass">
-            <h2 id="modal-title">새 노트 만들기</h2>
-            <input type="text" id="note-title-input" placeholder="노트 제목">
-            <textarea id="note-content-input" placeholder="내용을 입력하세요..." rows="10"></textarea>
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> <span id="modal-title">새 노트 만들기</span></h2>
+                <button class="close-modal" id="close-note-modal">&times;</button>
+            </div>
+            <div class="modal-body note-modal-body">
+                <div class="setting-item">
+                    <label for="note-title-input">노트 제목</label>
+                    <input type="text" id="note-title-input" placeholder="제목을 입력하세요...">
+                </div>
+                <div class="setting-item">
+                    <label for="note-content-input">노트 내용</label>
+                    <textarea id="note-content-input" placeholder="내용을 입력하세요..." rows="12"></textarea>
+                </div>
+            </div>
             <div class="modal-actions">
                 <button id="cancel-note-btn" class="secondary-btn">취소</button>
                 <button id="save-note-btn" class="primary-btn">저장</button>
@@ -139,6 +158,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=3"></script>
+    <script src="/static/app.js?v=20260319"></script>
 </body>
 </html>

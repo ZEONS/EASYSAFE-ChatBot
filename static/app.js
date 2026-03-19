@@ -232,8 +232,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     newNoteBtn.onclick = () => {
         noteModal.classList.remove('hidden');
+        noteTitleInput.value = '';
+        noteContentInput.value = '';
         noteTitleInput.focus();
     };
+
+    saveNoteBtn.onclick = async () => {
+        const title = noteTitleInput.value.trim();
+        const content = noteContentInput.value.trim();
+        
+        if (!title || !content) {
+            alert('제목과 내용을 모두 입력해 주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.detail || '저장 실패');
+            }
+
+            noteModal.classList.add('hidden');
+            await fetchNotes(); // 목록 새로고침
+        } catch (error) {
+            alert('오류: ' + error.message);
+        }
+    };
+
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menu-toggle');
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('hidden');
+        const isHidden = sidebar.classList.contains('hidden');
+        
+        // 아이콘 및 타이틀 변경
+        const icon = menuToggle.querySelector('i');
+        if (isHidden) {
+            icon.className = 'fas fa-chevron-right';
+            menuToggle.title = '사이드바 펼치기';
+        } else {
+            icon.className = 'fas fa-chevron-left';
+            menuToggle.title = '사이드바 접기';
+        }
+    }
+
+    menuToggle.onclick = (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    };
+
+    cancelNoteBtn.onclick = () => noteModal.classList.add('hidden');
 
     settingsToggle.onclick = () => settingsModal.classList.remove('hidden');
 
@@ -243,6 +298,15 @@ document.addEventListener('DOMContentLoaded', () => {
             settingsModal.classList.add('hidden');
         };
     });
+
+    // 외부 영역 클릭 시 닫기
+    window.onclick = (e) => {
+        if (e.target === noteModal) noteModal.classList.add('hidden');
+        if (e.target === settingsModal) settingsModal.classList.add('hidden');
+        if (e.target === document.getElementById('delete-modal')) {
+            document.getElementById('delete-modal').classList.add('hidden');
+        }
+    };
 
     visibilityToggle.onclick = () => {
         const type = apiKeyInput.getAttribute('type') === 'password' ? 'text' : 'password';

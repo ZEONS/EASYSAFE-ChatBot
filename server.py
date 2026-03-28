@@ -8,6 +8,7 @@ from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Request, File, UploadFile
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
 from dotenv import load_dotenv, set_key
@@ -19,6 +20,13 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 app = FastAPI(title="EASYSAFE NoteBot API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 데이터 및 경로 설정
 BASE_DIR = Path(__file__).parent
@@ -218,12 +226,22 @@ async def upload_file(file: UploadFile = File(...)):
     ext = Path(file.filename).suffix.lower()
     if ext not in [".md", ".txt", ".pdf"]:
         raise HTTPException(status_code=400, detail="지원되지 않는 파일 형식입니다. (.md, .txt, .pdf만 가능)")
-    
-    file_path = NOTES_DIR / file.filename
+
+    MAX_SIZE = 50 * 1024 * 1024  # 50MB
+    contents: bytes = await file.read()
+    if len(contents) > MAX_SIZE:
+        raise HTTPException(status_code=413, detail="파일 크기가 50MB를 초과합니다.")
+
+    import re
+    safe_name = re.sub(r'[\\/*?:"<>|]', "_", file.filename).strip()
+    file_path = (NOTES_DIR / safe_name).resolve()
+    if not str(file_path).startswith(str(NOTES_DIR.resolve())):
+        raise HTTPException(status_code=400, detail="잘못된 파일 경로입니다.")
+
     try:
         with file_path.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        return {"filename": file.filename, "status": "success"}
+            buffer.write(contents)
+        return {"filename": safe_name, "status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

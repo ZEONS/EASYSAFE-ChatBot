@@ -3,161 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NotebookLM 지식 비서 — EASYSAFE NoteBot</title>
-    <link rel="stylesheet" href="/static/style.css?v=20260319">
+    <title>NoteBot — AI 지식 비서</title>
+    <link rel="stylesheet" href="/static/style.css?v=20260328">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="dark-theme">
-    <button id="menu-toggle" class="hamburger-btn" title="사이드바 펼치기">
-        <i class="fas fa-chevron-right"></i>
-    </button>
+<body>
+<div class="app-container">
 
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar hidden" id="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-header-top">
-                    <h1>📚 <span>지식 비서</span></h1>
-                </div>
-                <p>NotebookLM 스타일 AI 어시스턴트</p>
-            </div>
-            
-            <div class="sidebar-section">
-                <button id="new-note-btn" class="primary-btn">
-                    <i class="fas fa-plus"></i> 새 노트 추가
-                </button>
-            </div>
-
-            <div class="sidebar-section">
-                <h3>📂 지식 소스 (<span id="note-count">0</span>)</h3>
-                <div id="drop-zone" class="drop-zone">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <span>파일을 여기에 드래그하세요</span>
-                    <input type="file" id="file-upload" class="hidden" multiple accept=".md,.txt,.pdf">
-                </div>
-                <div id="notes-list" class="notes-list">
-                    <!-- Notes will be injected here -->
-                </div>
-            </div>
-
-            <div class="sidebar-footer">
-                <button id="settings-toggle" class="settings-btn">
-                    <i class="fas fa-cog"></i> 설정 및 모델 관리
-                </button>
-            </div>
-        </aside>
-
-        <!-- Settings Modal -->
-        <div id="settings-modal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2><i class="fas fa-sliders-h"></i> 시스템 설정</h2>
-                    <button class="close-modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <div class="setting-item">
-                        <label>Gemini API Key</label>
-                        <div class="api-input-wrapper">
-                            <input type="password" id="api-key-input" placeholder="AIza...">
-                            <span class="visibility-toggle"><i class="fas fa-eye"></i></span>
-                        </div>
-                    </div>
-                    <div class="setting-item">
-                        <label>기본 사용 모델</label>
-                        <select id="model-select">
-                            <option value="">모델 로딩 중...</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <button id="diag-btn" class="diag-btn">
-                            <i class="fas fa-stethoscope"></i> API 연결 진단
-                        </button>
-                        <div id="diag-result" class="diag-result"></div>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button id="save-key-btn" class="primary-btn">저장 및 적용</button>
-                    <button class="secondary-btn close-modal">취소</button>
-                </div>
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar collapsed" id="sidebar">
+        <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-robot sidebar-logo-icon"></i>
+                <span class="sidebar-logo-text">NoteBot</span>
+                <span class="ai-badge">AI</span>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="top-bar-left">
-                    <div class="current-note-info">
-                        <span id="active-note-title">모든 노트 기반 Q&A</span>
-                    </div>
+        <div class="sources-section">
+            <div class="sources-title-row">
+                <span class="sources-label">지식 소스</span>
+                <span class="source-count-badge" id="source-count">0</span>
+            </div>
+            <div id="notes-list" class="notes-list"></div>
+            <button id="upload-open-btn" class="add-file-btn">
+                <i class="fas fa-plus"></i>
+                <span>파일 업로드</span>
+            </button>
+        </div>
+
+        <div class="sidebar-bottom">
+            <button id="new-note-btn" class="new-note-btn">
+                <i class="fas fa-pencil-alt"></i>
+                <span>새 노트 작성</span>
+            </button>
+            <button id="settings-toggle" class="settings-row-btn">
+                <i class="fas fa-cog"></i>
+                <span>설정</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+        <button id="sidebar-toggle" class="sidebar-toggle-btn" title="사이드바 토글">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <header class="chat-header">
+            <div class="chat-header-left">
+                <i class="fas fa-comment-dots chat-header-icon"></i>
+                <div class="chat-title-group">
+                    <span class="chat-title">AI 지식 비서</span>
+                    <span class="chat-subtitle">업로드된 문서를 기반으로 질문에 답합니다</span>
+                </div>
+            </div>
+            <div class="chat-header-right">
+                <div class="model-selector-wrap">
+                    <i class="fas fa-microchip model-icon"></i>
+                    <select id="model-select" class="model-selector-inline">
+                        <option value="">모델 로딩 중...</option>
+                    </select>
+                    <i class="fas fa-chevron-down caret-icon"></i>
+                </div>
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="status-text">연결됨</span>
                 </div>
                 <button id="clear-chat-btn" class="icon-btn" title="대화 초기화">
-                    <i class="fas fa-trash-alt"></i>
+                    <i class="fas fa-rotate-left"></i>
                 </button>
-            </header>
-
-            <div id="chat-container" class="chat-container">
-                <div class="welcome-msg">
-                    <h2>안녕하세요! 지식 비서입니다. 📚</h2>
-                    <p><code>./my_notes/</code> 폴더의 문서와 등록된 노트를 기반으로 답변해 드립니다.</p>
-                </div>
-                <!-- Chat messages will be injected here -->
             </div>
+        </header>
 
-            <div class="input-area">
-                <div class="input-wrapper">
-                    <textarea id="chat-input" placeholder="궁금한 내용을 물어보세요..." rows="1"></textarea>
-                    <button id="send-btn" class="send-btn">
-                        <i class="fas fa-paper-plane"></i>
+        <div id="chat-container" class="chat-container">
+            <div class="welcome-msg" id="welcome-msg">
+                <div class="welcome-icon"><i class="fa-solid fa-robot"></i></div>
+                <h2>안녕하세요!</h2>
+                <p>업로드된 문서와 노트를 기반으로 질문에 답해드립니다.<br>좌측에서 파일을 추가하고 질문을 시작해보세요.</p>
+                <div class="welcome-chips">
+                    <button class="chip" data-text="업로드된 문서를 요약해줘">문서 요약 요청</button>
+                    <button class="chip" data-text="주요 안전 주의사항을 알려줘">안전 주의사항</button>
+                    <button class="chip" data-text="작업 절차를 단계별로 설명해줘">작업 절차 설명</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="suggestion-chips" id="suggestion-chips">
+                <button class="chip" data-text="작업 절차 요약해줘">작업 절차 요약</button>
+                <button class="chip" data-text="점검 체크리스트를 만들어줘">점검 체크리스트</button>
+                <button class="chip" data-text="위험 요소를 분석해줘">위험 요소 분석</button>
+            </div>
+            <div class="input-row">
+                <textarea id="chat-input" class="chat-input" placeholder="문서에 대해 질문하세요..." rows="1"></textarea>
+                <button id="send-btn" class="send-btn" title="전송">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div id="settings-modal" class="modal hidden">
+    <div class="modal-backdrop" data-modal="settings-modal"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title-row">
+                <i class="fas fa-cog modal-title-icon"></i>
+                <span>설정</span>
+            </div>
+            <button class="modal-close-btn" data-modal="settings-modal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-section">
+                <label class="form-label">Gemini API 키</label>
+                <p class="form-hint">Google AI Studio에서 발급받은 API 키를 입력하세요</p>
+                <div class="api-input-row">
+                    <i class="fas fa-key api-icon"></i>
+                    <input type="password" id="api-key-input" class="form-input" placeholder="AIza...">
+                    <button class="visibility-toggle" id="visibility-toggle" title="보기/숨기기">
+                        <i class="fas fa-eye-slash"></i>
                     </button>
                 </div>
-                <p class="input-hint">팁: [노트 제목] 형태로 출처가 표시됩니다.</p>
             </div>
-        </main>
+            <div class="form-section">
+                <label class="form-label">AI 모델 선택</label>
+                <div id="model-options" class="model-options">
+                    <div class="model-loading">모델 로딩 중...</div>
+                </div>
+            </div>
+            <div class="form-section">
+                <label class="form-label">API 연결 진단</label>
+                <div class="diag-wrap">
+                    <button id="diag-btn" class="diag-btn">
+                        <i class="fas fa-wifi"></i>
+                        <span>API 연결 상태 확인</span>
+                        <span class="diag-status-pill hidden" id="diag-status-pill"></span>
+                    </button>
+                </div>
+                <div id="diag-result" class="diag-result hidden"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" data-modal="settings-modal" id="settings-cancel-btn">취소</button>
+            <button id="save-key-btn" class="btn-primary"><i class="fas fa-save"></i> 저장</button>
+        </div>
     </div>
+</div>
 
-    <!-- Modals -->
-    <div id="note-modal" class="modal hidden">
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h2><i class="fas fa-edit"></i> <span id="modal-title">새 노트 만들기</span></h2>
-                <button class="close-modal" id="close-note-modal">&times;</button>
+<!-- ===== FILE UPLOAD MODAL ===== -->
+<div id="upload-modal" class="modal hidden">
+    <div class="modal-backdrop" data-modal="upload-modal"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title-row">
+                <i class="fas fa-upload modal-title-icon"></i>
+                <span>파일 업로드</span>
             </div>
-            <div class="modal-body note-modal-body">
-                <div class="setting-item">
-                    <label for="note-title-input">노트 제목</label>
-                    <input type="text" id="note-title-input" placeholder="제목을 입력하세요...">
-                </div>
-                <div class="setting-item">
-                    <label for="note-content-input">노트 내용</label>
-                    <textarea id="note-content-input" placeholder="내용을 입력하세요..." rows="12"></textarea>
+            <button class="modal-close-btn" data-modal="upload-modal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div id="drop-zone" class="drop-zone">
+                <input type="file" id="file-upload" class="hidden" multiple accept=".md,.txt,.pdf">
+                <div class="drop-icon-wrap"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p class="drop-title">파일을 여기에 드래그하거나 클릭하세요</p>
+                <p class="drop-hint">최대 파일 크기: 50MB</p>
+                <div class="format-badges">
+                    <span class="fmt-badge pdf"><i class="fas fa-file-pdf"></i> PDF</span>
+                    <span class="fmt-badge md"><i class="fas fa-file-code"></i> Markdown</span>
+                    <span class="fmt-badge txt"><i class="fas fa-file-alt"></i> TXT</span>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button id="cancel-note-btn" class="secondary-btn">취소</button>
-                <button id="save-note-btn" class="primary-btn">저장</button>
+            <div id="upload-queue" class="upload-queue hidden">
+                <div class="queue-header">
+                    <span>선택된 파일</span>
+                    <span class="queue-count-badge" id="queue-count">0</span>
+                </div>
+                <div id="upload-list" class="upload-list"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-footer-left">
+                <i class="fas fa-info-circle" style="color:var(--text-muted)"></i>
+                <span style="color:var(--text-muted);font-size:12px">지원 형식: PDF, Markdown, TXT</span>
+            </div>
+            <div class="modal-footer-right">
+                <button class="btn-secondary" data-modal="upload-modal">취소</button>
+                <button id="start-upload-btn" class="btn-primary" disabled>
+                    <i class="fas fa-upload"></i> 업로드 시작
+                </button>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="modal hidden">
-        <div class="modal-content glass confirm-modal">
-            <div style="font-size: 3rem; color: #ef4444; margin: 20px 0 16px;">
-                <i class="fas fa-exclamation-triangle"></i>
+<!-- ===== NEW NOTE MODAL ===== -->
+<div id="note-modal" class="modal hidden">
+    <div class="modal-backdrop" data-modal="note-modal"></div>
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <div class="modal-title-row">
+                <i class="fas fa-pencil-alt modal-title-icon"></i>
+                <span>새 노트 작성</span>
             </div>
-            <h3>소스 삭제 확인</h3>
-            <p id="delete-confirm-text" style="margin-top: 12px;">정말로 이 소스를 삭제하시겠습니까?</p>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 8px;">이 작업은 되돌릴 수 없습니다.</p>
-            <div class="confirm-actions">
-                <button id="cancel-delete-btn" class="btn-secondary">취소</button>
-                <button id="confirm-delete-btn" class="btn-danger">삭제하기</button>
+            <button class="modal-close-btn" data-modal="note-modal"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-section">
+                <div class="form-label-row">
+                    <label class="form-label">제목</label>
+                    <span class="required-badge">필수</span>
+                </div>
+                <div class="title-input-wrap">
+                    <input type="text" id="note-title-input" class="form-input" placeholder="노트 제목을 입력하세요..." maxlength="100">
+                    <span class="char-count" id="title-char-count">0/100</span>
+                </div>
+            </div>
+            <div class="form-section">
+                <label class="form-label">내용</label>
+                <div class="content-editor">
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn" title="굵게"><b>B</b></button>
+                        <button class="toolbar-btn" title="기울임"><i>I</i></button>
+                        <div class="toolbar-divider"></div>
+                        <button class="toolbar-btn" title="목록"><i class="fas fa-list"></i></button>
+                        <button class="toolbar-btn" title="링크"><i class="fas fa-link"></i></button>
+                    </div>
+                    <textarea id="note-content-input" class="content-textarea" placeholder="노트 내용을 입력하세요..." rows="8" maxlength="5000"></textarea>
+                    <div class="content-footer-row">
+                        <span class="char-count" id="content-char-count">0 / 5000자</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-section">
+                <label class="form-label">태그</label>
+                <div class="tag-input-area" id="tag-input-area">
+                    <div id="tag-list" class="tag-list"></div>
+                    <input type="text" id="tag-input" class="tag-input-field" placeholder="태그 추가... (Enter)">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-footer-left">
+                <button class="btn-ai-suggest" id="ai-suggest-btn" title="AI가 내용을 자동 완성합니다">
+                    <i class="fas fa-wand-magic-sparkles"></i> AI 자동완성
+                </button>
+            </div>
+            <div class="modal-footer-right">
+                <button class="btn-secondary" data-modal="note-modal">취소</button>
+                <button id="save-note-btn" class="btn-primary"><i class="fas fa-save"></i> 노트 저장</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="/static/app.js?v=20260319"></script>
+<!-- ===== DELETE CONFIRM MODAL ===== -->
+<div id="delete-modal" class="modal hidden">
+    <div class="modal-backdrop" data-modal="delete-modal"></div>
+    <div class="modal-content modal-sm">
+        <div class="delete-icon-wrap"><i class="fas fa-triangle-exclamation"></i></div>
+        <h3 class="delete-title">소스 삭제 확인</h3>
+        <p id="delete-confirm-text" class="delete-desc">정말로 이 소스를 삭제하시겠습니까?</p>
+        <p class="delete-warn">이 작업은 되돌릴 수 없습니다.</p>
+        <div class="confirm-actions">
+            <button id="cancel-delete-btn" class="btn-secondary">취소</button>
+            <button id="confirm-delete-btn" class="btn-danger"><i class="fas fa-trash"></i> 삭제하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="/static/app.js?v=20260328"></script>
 </body>
 </html>
